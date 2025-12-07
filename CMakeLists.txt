@@ -17,5 +17,11 @@ set(SOURCES
     src/font.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+# Build as shared library for Android, executable for desktop
+if(ANDROID)
+    add_library(${PROJECT_NAME} SHARED ${SOURCES})
+else()
+    add_executable(${PROJECT_NAME} ${SOURCES})
+endif()
+
 target_link_libraries(${PROJECT_NAME} thirdparty)
