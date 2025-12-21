@@ -19,14 +19,33 @@ bool Font::load(const std::string &path, int pointSize)
 {
     cleanup();
 
+#ifdef __ANDROID__
+    // On Android, use SDL_IOFromFile to read from assets
+    SDL_IOStream *io = SDL_IOFromFile(path.c_str(), "rb");
+    if (!io)
+    {
+        SDL_Log("Failed to open font file %s: %s", path.c_str(), SDL_GetError());
+        return false;
+    }
+    
+    font = TTF_OpenFontIO(io, true, pointSize);
+    if (!font)
+    {
+        SDL_Log("Failed to load font from IO %s: %s", path.c_str(), SDL_GetError());
+        return false;
+    }
+#else
+    // On desktop, use regular file path
     font = TTF_OpenFont(path.c_str(), pointSize);
     if (!font)
     {
         SDL_Log("Failed to load font %s: %s", path.c_str(), SDL_GetError());
         return false;
     }
+#endif
 
     fontSize = pointSize;
+    SDL_Log("Successfully loaded font %s at size %d", path.c_str(), pointSize);
     return true;
 }
 
@@ -52,7 +71,7 @@ void Font::drawText(const std::string &text, int x, int y, SDL_Color color)
     SDL_Surface *surface = TTF_RenderText_Blended(font, text.c_str(), text.length(), color);
     if (!surface)
     {
-        SDL_Log("Failed to render text: %s", SDL_GetError());
+        SDL_Log("Failed to render text '%s': %s", text.c_str(), SDL_GetError());
         return;
     }
 
@@ -60,10 +79,13 @@ void Font::drawText(const std::string &text, int x, int y, SDL_Color color)
     SDL_Texture *texture = SDL_CreateTextureFromSurface(sdlRenderer, surface);
     if (!texture)
     {
-        SDL_Log("Failed to create texture from text: %s", SDL_GetError());
+        SDL_Log("Failed to create texture from text '%s': %s", text.c_str(), SDL_GetError());
         SDL_DestroySurface(surface);
         return;
     }
+    
+    // Set blend mode for transparency
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
 
     // Get texture dimensions
     int texW = surface->w;

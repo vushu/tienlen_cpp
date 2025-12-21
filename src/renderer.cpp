@@ -51,7 +51,12 @@ bool Renderer::init(const std::string &title, int width, int height, bool resiza
         return false;
     }
 
-    SDL_SetRenderLogicalPresentation(renderer, width, height, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+    // Don't set logical presentation on Android - use native resolution
+    // SDL_SetRenderLogicalPresentation(renderer, width, height, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+    
+    int actualWidth, actualHeight;
+    SDL_GetRenderOutputSize(renderer, &actualWidth, &actualHeight);
+    SDL_Log("Renderer initialized: requested %dx%d, actual output %dx%d", width, height, actualWidth, actualHeight);
 
     initialized = true;
     return true;

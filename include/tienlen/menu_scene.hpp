@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scene.hpp"
+#include "font.hpp"
 #include <string>
 #include <vector>
 
@@ -37,6 +38,7 @@ private:
     std::vector<MenuItem> menuItems;
     int selectedIndex;
     bool transitionToGame;
+    Font font;
     bool checkMenuItemHover(const MenuItem &item, int mouseX, int mouseY);
 };
 

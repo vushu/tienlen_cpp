@@ -1,10 +1,20 @@
 #!/bin/bash
+set -e
 
-# Build Docker image
-docker build -t tienlen-android .
+echo "Building Android APK using Docker..."
 
-# Run container and build APK
-docker run --rm -v "$(pwd):/workspace" tienlen-android /usr/local/bin/build-android.sh
+# Build Docker image if it doesn't exist
+if ! docker images | grep -q tienlen-android-builder; then
+    echo "Building Docker image..."
+    docker build -t tienlen-android-builder .
+fi
+
+# Run build in container
+docker run --rm \
+    -v "$(pwd):/workspace" \
+    tienlen-android-builder \
+    /workspace/build-android-simple.sh
 
 echo ""
-echo "To extract the APK, it's located at: ./android/app/build/outputs/apk/release/app-release.apk"
+echo "Build complete!"
+echo "APK: android/app/build/outputs/apk/release/app-release-unsigned.apk"
