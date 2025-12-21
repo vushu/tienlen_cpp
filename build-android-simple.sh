@@ -39,10 +39,12 @@ find . -name "*.so" -exec cp -v {} ../android/app/src/main/jniLibs/arm64-v8a/ \;
 # Copy libc++_shared.so from NDK (required by SDL3)
 cp -v $ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so ../android/app/src/main/jniLibs/arm64-v8a/
 
-# Copy assets (fonts)
+# Copy assets (fonts and sound)
 echo "Copying assets..."
 mkdir -p ../android/app/src/main/assets/fonts
+mkdir -p ../android/app/src/main/assets/sound
 cp -v ../assets/fonts/Roboto-Regular.ttf ../android/app/src/main/assets/fonts/
+cp -v ../assets/sound/drums.mp3 ../android/app/src/main/assets/sound/
 
 # Build APK
 echo "Building APK..."

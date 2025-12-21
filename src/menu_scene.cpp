@@ -7,7 +7,8 @@ namespace tienlen
 {
 
 MenuScene::MenuScene()
-    : selectedIndex(-1), transitionToGame(false)
+    : selectedIndex(-1), transitionToGame(false), 
+      mixer(nullptr), menuMusic(nullptr), musicTrack(nullptr)
 {
 }
 
@@ -63,6 +64,75 @@ bool MenuScene::init()
     else
     {
         SDL_Log("Successfully loaded font from %s at size %d", fontPath, fontSize);
+    }
+
+    // Load and play menu music using SDL_mixer 3.0
+#ifdef __ANDROID__
+    const char* musicPath = "sound/drums.mp3";
+#else
+    const char* musicPath = "assets/sound/drums.mp3";
+#endif
+    
+    // Initialize SDL_mixer
+    if (!MIX_Init())
+    {
+        SDL_Log("Warning: Could not initialize SDL_mixer: %s", SDL_GetError());
+        mixer = nullptr;
+        menuMusic = nullptr;
+        musicTrack = nullptr;
+    }
+    else
+    {
+        // Create mixer device for audio playback
+        mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
+        if (!mixer)
+        {
+            SDL_Log("Warning: Could not create mixer: %s", SDL_GetError());
+            menuMusic = nullptr;
+            musicTrack = nullptr;
+        }
+        else
+        {
+            // Load the music file
+            menuMusic = MIX_LoadAudio(mixer, musicPath, false);
+            if (!menuMusic)
+            {
+                SDL_Log("Warning: Could not load music from %s: %s", musicPath, SDL_GetError());
+                musicTrack = nullptr;
+            }
+            else
+            {
+                SDL_Log("Successfully loaded music from %s", musicPath);
+                
+                // Create a track for playback
+                musicTrack = MIX_CreateTrack(mixer);
+                if (!musicTrack)
+                {
+                    SDL_Log("Warning: Could not create track: %s", SDL_GetError());
+                }
+                else
+                {
+                    // Set the audio to the track
+                    MIX_SetTrackAudio(musicTrack, menuMusic);
+                    
+                    // Create properties for looping playback
+                    SDL_PropertiesID options = SDL_CreateProperties();
+                    SDL_SetNumberProperty(options, MIX_PROP_PLAY_LOOPS_NUMBER, -1);  // -1 = infinite loop
+                    
+                    // Play music looping
+                    if (!MIX_PlayTrack(musicTrack, options))
+                    {
+                        SDL_Log("Failed to play music: %s", SDL_GetError());
+                    }
+                    else
+                    {
+                        SDL_Log("Music playing");
+                    }
+                    
+                    SDL_DestroyProperties(options);
+                }
+            }
+        }
     }
 
     return true;
@@ -201,6 +271,24 @@ void MenuScene::render()
 
 void MenuScene::cleanup()
 {
+    // Stop and free music using SDL_mixer 3.0 API
+    if (musicTrack)
+    {
+        MIX_StopTrack(musicTrack, 0);  // Stop immediately (0 fade frames)
+        MIX_DestroyTrack(musicTrack);
+        musicTrack = nullptr;
+    }
+    if (menuMusic)
+    {
+        MIX_DestroyAudio(menuMusic);
+        menuMusic = nullptr;
+    }
+    if (mixer)
+    {
+        MIX_DestroyMixer(mixer);
+        mixer = nullptr;
+    }
+    
     font.cleanup();
     menuItems.clear();
 }

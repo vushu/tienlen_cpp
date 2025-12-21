@@ -2,6 +2,7 @@
 
 #include "scene.hpp"
 #include "font.hpp"
+#include <SDL3_mixer/SDL_mixer.h>
 #include <string>
 #include <vector>
 
@@ -39,6 +40,12 @@ private:
     int selectedIndex;
     bool transitionToGame;
     Font font;
+    
+    // SDL_mixer 3.0 music variables
+    MIX_Mixer *mixer;
+    MIX_Audio *menuMusic;
+    MIX_Track *musicTrack;
+    
     bool checkMenuItemHover(const MenuItem &item, int mouseX, int mouseY);
 };
 
